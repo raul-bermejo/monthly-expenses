@@ -86,24 +86,27 @@ class MonthlyExpenses_Dataset:
                       "Eating Out", "Rent", "Others", "Income"]
     
     if random_set is not True:
-        month = month_name(np.random.randint(1,12))
+        month_number = np.random.randint(1,12)
+        month_name = month_name(month_number)
         year = np.random.randint(2019,2021)
         
         # Define some (arbitrary) average weekly expenses
         AVERAGE_RENT = 260
         AVERAGE_GROCERIES = 100
-        AVERAGE_EATING_OUT = 50
-        AVERAGE_DRINKING_OUT = 30
-        AVERAGE_COFFEE = 30
         AVERAGE_OTHERS = 20
         AVERAGE_INCOME = 1000
+        
+        # DEfine some daily expenses
+        AVERAGE_COFFEE = 4.5
+        AVERAGE_DRINK = 11
+        AVERAGE_MEAL_OUT = 14
         
         
         # Define fixed weekly payments
         rent = np.random.normal(AVERAGE_RENT, scale=AVERAGE_RENT//10)
         groceries = np.random.normal(AVERAGE_GROCERIES, scale=AVERAGE_GROCERIES//10)
         income = np.random.normal(AVERAGE_INCOME, scale=AVERAGE_INCOME//100)
-        
+        others = np.random.normal(AVERAGE_OTHERS, scale=AVERAGE_OTHERS/5)
         # Define sporadic expenses
     
 
@@ -114,10 +117,43 @@ class MonthlyExpenses_Dataset:
         time_stamp = np.zeros(n_days)
         amount = np.zeros(n_days)
         category = np.zeros(n_days)
+        
+        dummy_merch = "Dummy merchant"
+        dummy_fees = 0
+        
+        # Initialize pd.DataFrame with a coffee
+        cols = ["Date", "Amount", "Merchant", "Total fees", "Category"]
+        init_data = [f"01/{month_number}/{year}", AVERAGE_COFFEE, dummy_merch, dummy_fees, "Coffee"]
+        df = pd.DataFrame(init_data, columns = cols) 
+        
+
 
         # Defining fixed amounts
         rent = 3
-    
+        
+        costs = []
+        # Constructing cost array
+        for i, day in enumerate(range(1,days+1)):
+            day_noise = np.random.randint(0,2)
+            # First append 
+            if i%7 == 0:
+                weekend_eating = np.random.normal(AVERAGE_MEAL_OUT, scale=AVERAGE_MEAL_OUT//10)
+                weekend_drinking = np.random.normal(AVERAGE_DRINK, scale=AVERAGE_DRINK//10)
+                weekend_coffee = np.random.normal(AVERAGE_COFFEE, scale=AVERAGE_COFFEE//10)
+                weekly_expenses = [[f"{day}/{month_number}/{year}", rent, dummy_merch, dummy_fees, "Rent"],
+                                  [f"{day+day_noise}/{month_number}/{year}", groceries, dummy_merch, dummy_fees, "Groceries"],
+                                  [f"{day+1}/{month_number}/{year}", income, dummy_merch, dummy_fees, "Income"],
+                                  [f"{day+day_noise}/{month_number}/{year}", Others, dummy_merch, dummy_fees, "Others"],
+                                  [f"{day+day_noise}/{month_number}/{year}", weekend_coffee, dummy_merch, dummy_fees, "Coffee"],
+                                  [f"{day+day_noise}/{month_number}/{year}", weekend_drinking, dummy_merch, dummy_fees, "Drinks Out"],
+                                  [f"{day+day_noise}/{month_number}/{year}", Others, weekend_eating, dummy_fees, "Eating Out"]]
+                df.append(weekly_expenses)
+            else:
+                daily_coffee = np.random.normal(AVERAGE_COFFEE, scale=AVERAGE_COFFEE//10)
+                """Implemented random daily expenses! (coffee (everyday), drinks and eating out!!)"""
+                
+                
+            
     # Generating random data
     #for i in range(1, n_days+1):
 
@@ -163,7 +199,7 @@ class MonthlyExpenses_Analytics:
         """
         
         # Loading the file with pandas
-        loc = self.PATH_TO_FOLDER + "\{}.csv".format(self.month)
+        loc = os.path.join(self.PATH_TO_FOLDER, f"{self.month}.csv")
         
         start = time.time()
         df = pd.read_csv(loc,sep=',',
@@ -384,4 +420,3 @@ class MonthlyExpenses_Analytics:
             (b) Use AI (PyTorch) to identify merchant and put in given category (?) - Long term idea
             (c) Create GUI to display improve layman's user experience (?) - Long term idea
     """
-
