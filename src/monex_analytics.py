@@ -24,7 +24,7 @@ OUTPUT: Analytics of the costs, including:
 
 # Importing all neccesary modules and plot settings
 #%config InlineBackend.figure_format = 'retina'   # to see plots in HD
-import random as ra
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -63,94 +63,109 @@ class MonthlyExpenses_Dataset:
         self.month = month
         self.year = year
     
-    def crceate_mock_data(random_set=False):
-    """
-    Creates a pandas.DataFrame representing a mock bank statement. 
-    
-    Parameters:
-    ----------
-    random_set: bool
-                If True, all data is set random by default. Otherwise, some of the overall costs are set randomly 
-    
-    Returns:
-    -------
-    
-    Notes:
-    -----
-    This function is intended to create mock data to show data analysis assets
-    to the public.
-    """
-    
-    # Initialize some data
-    categories = ["Groceries", "Drinks Out", "Coffee", 
-                      "Eating Out", "Rent", "Others", "Income"]
-    
-    if random_set is not True:
+    def create_mock_data(save_csv=False):
+        """
+        Creates a pandas.DataFrame representing a mock bank statement. 
+
+        Parameters:
+        ----------
+        save_csv: bool
+                  If True, mock data will be saved into current directory.
+        Returns:
+        -------
+        df: pandas.DataFrame
+            Contains mock Monthly Expenses data
+
+        Notes:
+        -----
+        This function is intended to create mock data to show data analysis assets
+        to the public.
+        """
+
+        # Initialize some data
         month_number = np.random.randint(1,12)
-        month_name = month_name(month_number)
-        year = np.random.randint(2019,2021)
-        
+        monthName = month_name(month_number)
+        n_days = days_number(monthName)
+        year = 2021
+
         # Define some (arbitrary) average weekly expenses
         AVERAGE_RENT = 260
         AVERAGE_GROCERIES = 100
         AVERAGE_OTHERS = 20
         AVERAGE_INCOME = 1000
-        
+
         # DEfine some daily expenses
         AVERAGE_COFFEE = 4.5
         AVERAGE_DRINK = 11
         AVERAGE_MEAL_OUT = 14
-        
-        
+
+
         # Define fixed weekly payments
         rent = np.random.normal(AVERAGE_RENT, scale=AVERAGE_RENT//10)
         groceries = np.random.normal(AVERAGE_GROCERIES, scale=AVERAGE_GROCERIES//10)
         income = np.random.normal(AVERAGE_INCOME, scale=AVERAGE_INCOME//100)
         others = np.random.normal(AVERAGE_OTHERS, scale=AVERAGE_OTHERS/5)
-        # Define sporadic expenses
-    
 
-        # Declare number of categories (keep simple in this version of the function)
-        
-
-        # Creating the main categories
-        time_stamp = np.zeros(n_days)
-        amount = np.zeros(n_days)
-        category = np.zeros(n_days)
-        
         dummy_merch = "Dummy merchant"
         dummy_fees = 0
-        
+
         # Initialize pd.DataFrame with a coffee
-        cols = ["Date", "Amount", "Merchant", "Total fees", "Category"]
-        init_data = [f"01/{month_number}/{year}", AVERAGE_COFFEE, dummy_merch, dummy_fees, "Coffee"]
-        df = pd.DataFrame(init_data, columns = cols) 
-        
+        init_data = {"Date": f"01/{month_number}/{year}", 
+                     "Amount": AVERAGE_COFFEE, 
+                     "Merchant": dummy_merch, 
+                     "Total fees": dummy_fees, 
+                     "Category": "Coffee"}
+        df = pd.DataFrame(init_data, index=[0])
 
-
-        # Defining fixed amounts
-        rent = 3
-        
-        costs = []
         # Constructing cost array
-        for i, day in enumerate(range(1,days+1)):
+        for i, day in enumerate(range(1,n_days+1)):
             day_noise = np.random.randint(0,2)
             # First append 
             if i%7 == 0:
+                # Generate random values for inconsistent expenses and put all costs into list
                 weekend_eating = np.random.normal(AVERAGE_MEAL_OUT, scale=AVERAGE_MEAL_OUT//10)
                 weekend_drinking = np.random.normal(AVERAGE_DRINK, scale=AVERAGE_DRINK//10)
                 weekend_coffee = np.random.normal(AVERAGE_COFFEE, scale=AVERAGE_COFFEE//10)
-                weekly_expenses = [[f"{day}/{month_number}/{year}", rent, dummy_merch, dummy_fees, "Rent"],
-                                  [f"{day+day_noise}/{month_number}/{year}", groceries, dummy_merch, dummy_fees, "Groceries"],
-                                  [f"{day+1}/{month_number}/{year}", income, dummy_merch, dummy_fees, "Income"],
-                                  [f"{day+day_noise}/{month_number}/{year}", Others, dummy_merch, dummy_fees, "Others"],
-                                  [f"{day+day_noise}/{month_number}/{year}", weekend_coffee, dummy_merch, dummy_fees, "Coffee"],
-                                  [f"{day+day_noise}/{month_number}/{year}", weekend_drinking, dummy_merch, dummy_fees, "Drinks Out"],
-                                  [f"{day+day_noise}/{month_number}/{year}", Others, weekend_eating, dummy_fees, "Eating Out"]]
-                df.append(weekly_expenses)
+
+                weekend_amount = [rent, groceries, income, others, weekend_coffee, weekend_drinking, weekend_eating]
+                weekend_dates = [f"{day}/{month_number}/{year}", f"{day+day_noise}/{month_number}/{year}", 
+                                 f"{day+1}/{month_number}/{year}", f"{day+day_noise}/{month_number}/{year}", 
+                                 f"{day+day_noise}/{month_number}/{year}", f"{day+day_noise}/{month_number}/{year}", 
+                                 f"{day+day_noise}/{month_number}/{year}"]
+                weekend_merch = [dummy_merch for _ in range(len(weekend_amount))]
+                weekend_fees = [dummy_merch for _ in range(len(weekend_amount))]
+                weekend_categories = ["Rent", "Groceries", "Income", "Others", "Coffee", "Drinks Out", "Eating Out"]
+                weekly_expenses = {"Date": weekend_dates, "Amount": weekend_amount, "Merchant": weekend_merch, 
+                                   "Total fees": weekend_fees, "Category": weekend_categories}
+
+                df.append(weekly_expenses, ignore_index=True)
+
+            # Add some random daily expenses
             else:
-                daily_coffee = np.random.normal(AVERAGE_COFFEE, scale=AVERAGE_COFFEE//10)
-                """Implemented random daily expenses! (coffee (everyday), drinks and eating out!!)"""
+                daily_expenses = {"Date": [f"{day+day_noise}/{month_number}/{year}"], 
+                                  "Amount": [np.random.normal(AVERAGE_COFFEE, scale=AVERAGE_COFFEE//10)], 
+                                  "Merchant": [dummy_merch],  "Total fees": [dummy_fees], "Category": ["Coffee"]}
+                # Adding some other random arbitary cost for every few days
+                rand = np.random.randint(0,2)
+                if rand == 1:
+                    daily_dates = [f"{day}/{month_number}/{year}", f"{day}/{month_number}/{year}",f"{day+day_noise}/{month_number}/{year}"]
+                    daily_amounts = [np.random.normal(AVERAGE_COFFEE, scale=AVERAGE_COFFEE//10), 
+                                     np.random.normal(AVERAGE_MEAL_OUT, scale=AVERAGE_MEAL_OUT//10),
+                                     np.random.normal(AVERAGE_DRINK, scale=AVERAGE_MEAL_OUT//10)]
+                    daily_merch = [dummy_merch for _ in range(len(daily_amounts))]
+                    daily_fees = [dummy_merch for _ in range(len(daily_amounts))]
+                    daily_categories = ["Coffee", "Eating Out", "Drinks Out"]
+
+                    daily_expenses = {"Date": daily_dates, "Amount": daily_amounts, "Merchant": daily_merch, 
+                                   "Total fees": daily_fees, "Category": daily_categories}
+
+                df.append(daily_expenses, ignore_index=True)
+
+        # Saving the pd.DataFrame if required
+        if save_csv is True:
+            df.to_csv("Mock_BankStatement.csv", index=False)
+
+        return df
                 
                 
             

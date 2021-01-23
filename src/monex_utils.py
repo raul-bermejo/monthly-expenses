@@ -202,43 +202,6 @@ def multi_costs(amount, category, days, month, income=False):
     # Returning the multi-dim array of cumulative costs with category array       
     return multi_arr, label_categ
 
-#(days, amount, merchant, fees, category)
-
-def mock_data(month, year, ntr_pd, curr):
-    """
-    Creates a csv file representing a mock bank statement. 
-    This function is intended to create mock data to show data analysis assets
-    to the public.
-    
-    Parameters:
-    ----------
-    
-    
-    Returns:
-    -------
-    
-    """
-    
-    # First define # transactions per day and # days of the month
-    n_days = days_number(month)
-    
-    # Declare number of categories (keep simple in this version of the function)
-    categories = ["Groceries", "Drinks Out", "Coffee", 
-                  "Eating Out", "Rent", "Others", "Income"]
-    
-    # Creating the main categories
-    time_stamp = np.zeros(n_days)
-    amount = np.zeros(n_days)
-    category = np.zeros(n_days)
-    
-    # Defining fixed amounts
-    rent = 3
-    
-    # Generating random data
-    #for i in range(1, n_days+1):
-        
-    return None
-
 def month_name(monthNum):
     """
     Returns the number of days for input month.
@@ -271,5 +234,5 @@ def month_name(monthNum):
         }
         
     # Assigining the value from the dictionary and return number of days
-    monthName = d["{}".format(monthNum)]
+    monthName = d[monthNum]
     return monthName
